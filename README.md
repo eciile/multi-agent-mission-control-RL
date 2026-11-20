@@ -1,49 +1,38 @@
 # MAMC-RL Multi-Agent Mission Control
 
-A small, reproducible study of **cooperative mission control** in a 2D simulation. Two agents navigate obstacles and complete prioritized objectives, including a new urgent target during an episode.
+A research prototype exploring **hierarchical reinforcement learning for cooperative mission control** in a simplified 2D simulator. Two agents coordinate to complete prioritized objectives while obstacles and mission requirements change.
 
-The project compares **random control**, **adaptive BFS-based planning**, **centralized PPO**, and **PPO with an inference-time feasibility shield**. It studies which decisions should be learned and which can be handled by classical planning.
+## Approach
 
-## Environment
-
-- **V1:** 8×8 static grid; two agents and two targets.
-- **V2:** 10×10 grid; three initial targets, optional urgent target at step 12, changing obstacles, 60-step horizon.
-- **Control:** 25 joint actions (five moves per agent); fully observable state.
-- **Tools:** Python, Gymnasium, Stable-Baselines3, PyTorch, pytest. All open source.
+- **V2:** Dynamic targets and obstacles; compare flat PPO, an adaptive heuristic, and hierarchical control.
+- **Hierarchical controller:** MaskablePPO selects target assignments, state-dependent masks exclude unavailable objectives, and BFS handles navigation.
+- **V3:** Adds deadlines and target expiry to study time-critical allocation decisions. V2 is preserved for comparison.
 
 ## Results
 
-V2 **combined** scenario, 100 episodes per controller (seeds 1000–1099):
+| Benchmark | Controller | Result |
+|---|---|---|
+| V2, 500 evaluation scenarios | Masked hierarchical PPO | **100% success** across each of 3 training seeds; ~21.2–21.6 primitive steps/episode |
+| V2, same 500 scenarios | Masked random assignment + BFS | 91.8% success; 34.3 primitive steps/episode |
+| V3, 200 evaluation scenarios | Deadline-aware heuristic + BFS | **98.9%** priority-weighted completion; 93.5% success |
+| V3, same 200 scenarios | Masked random assignment + BFS | 63.6% priority-weighted completion; 15.5% success |
 
-| Controller | Success | Weighted completion | Mean return | Invalid moves / episode |
-|---|---:|---:|---:|---:|
-| Random | 2% | 36.2% | 4.79 | 15.97 |
-| Adaptive heuristic | 100% | 100% | 40.62 | 0 |
-| PPO (100k training steps) | 5% | 43.1% | 3.63 | 32.76 |
-| Shielded PPO (same model) | 6% | 49.8% | 13.45 | 0 |
-
-**Finding:** The feasibility shield eliminated invalid movements and collisions in these tests, but full mission success barely improved. This motivates investigating hierarchical control: learned mission assignment with classical navigation.
-
-These are exploratory single-checkpoint results, not evidence that RL outperforms planning. The environment is simplified and does not model realistic aircraft dynamics.
+**Interpretation:** Feasibility masking and classical navigation make hierarchical learning effective on V2. V3 introduces meaningful deadline tradeoffs; **V3 PPO has not yet been trained or evaluated**. These are results from a toy simulator.
 
 ## Run locally
 
-Python 3.11 recommended.
+Python 3.11 recommended. Install `requirements.txt` and `sb3-contrib`:
 
 ```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt sb3-contrib
 python -m pytest -q
-python evaluate_v2.py --episodes 100 --seed-start 1000
-python train_v2.py --timesteps 100000 --seed 42 --output models/ppo_v2_combined
-python evaluate_shield_v2.py --model models/ppo_v2_combined.zip --episodes 100 --seed-start 1000
+python calibrate_v3.py --episodes 200 --seed-start 2000
+python train_masked_hierarchical_v2.py --timesteps 10000 --seed 42 --output models/hier_masked_v2
+python evaluate_masked_hierarchical_v2.py --model models/hier_masked_v2.zip --episodes 100 --seed-start 1000
 ```
 
-Results CSVs are in [`results/`](results/); V1 scripts and benchmarks are retained for comparison. PPO checkpoints are generated locally and are not included in Git.
+Results are saved under `results/`; trained model checkpoints are generated locally.
 
-## Next step
+**Next:** Train and evaluate deadline-aware masked PPO on V3 against the calibrated classical baselines.
 
-Evaluate **hierarchical PPO for mission assignment + BFS for movement** against the adaptive heuristic on dynamic objectives and obstacles.
-
-MIT licensed; see [LICENSE](LICENSE).
+MIT licensed — see [LICENSE](LICENSE).
