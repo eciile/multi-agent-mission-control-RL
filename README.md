@@ -1,88 +1,49 @@
-# MAMC-RL — Multi-Agent Mission Control with Reinforcement Learning
+# MAMC-RL Multi-Agent Mission Control
 
-A compact **research-oriented** prototype for cooperative mission control in a simplified 2D grid. Two virtual agents must visit two targets while avoiding obstacles and each other. The learned policy uses **centralized PPO with a joint action space**, compared with a random controller and a shortest-path-inspired heuristic.
+A small, reproducible study of **cooperative mission control** in a 2D simulation. Two agents navigate obstacles and complete prioritized objectives, including a new urgent target during an episode.
 
-> **Scope:** This is *centralized multi-entity control*, **not** a decentralized multi-agent RL algorithm or a flight-dynamics simulator. It is intended to study mission modeling, sequential decision-making, experimental evaluation, and scalability questions.
+The project compares **random control**, **adaptive BFS-based planning**, **centralized PPO**, and **PPO with an inference-time feasibility shield**. It studies which decisions should be learned and which can be handled by classical planning.
 
-## Research question
+## Environment
 
-Can a centralized PPO controller learn to complete cooperative multi-entity missions reliably, and how does it compare to random and heuristic controllers on unseen initial configurations?
-
-## Environment and MDP
-
-| Component | Definition |
-|---|---|
-| Grid | 8×8 with 6 fixed blocked cells |
-| Agents / targets | 2 movable agents and 2 targets; random distinct initial positions |
-| Observation | 74 normalized features: 64 obstacle indicators, 4 agent coordinates, 4 target coordinates, 2 completion flags |
-| Joint action | 25 discrete possibilities = 5 actions per agent (stay, up, down, left, right) |
-| Transition | Both agents move simultaneously. Invalid moves stay; collisions/swaps cancel both moves |
-| Reward | −0.05 each step, −0.2 per invalid action, −0.5 collision, +0.15 potential-based progress proxy, +5 per target, +10 mission success |
-| Termination | Both targets visited; time-limit truncation at 40 steps |
-| Policy | PPO (`MlpPolicy`, 2×128 network) |
-| Baselines | Uniform random; greedy target assignment + obstacle-aware BFS |
-
-**Reward nuance:** The progress term is a heuristic shaping signal based on Manhattan distances to targets active before the step; it is not guaranteed to be policy-invariant potential-based shaping. Report this limitation and, if time permits, test an ablation without shaping.
-
-**Simplification:** All entities have perfect shared access to the grid state. This version does not model partial observability, aircraft kinematics, inter-agent communication, or moving hazards.
-
-## Quickstart
-
-Use **Python 3.11**. No paid software or API keys required.
-
-```bash
-python -m venv .venv
-# Linux/macOS
-source .venv/bin/activate
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-python -m pytest -q
-python demo.py --policy heuristic --seed 7
-python evaluate.py --baselines-only --episodes 100
-python train.py --timesteps 50000 --seed 42
-python evaluate.py --episodes 100 --seed-start 1000
-python demo.py --policy ppo --seed 7
-```
-
-**Training time varies by hardware.** If slow, run `--timesteps 10000` first as a smoke test, then increase to 50,000 or 100,000 only if time allows. Learning and superior performance are **not guaranteed**.
-
-## Experimental protocol
-
-1. Check environment consistency with `pytest`.
-2. Evaluate random and heuristic controllers on the same 100 deterministic episode seeds (1000–1099).
-3. Train PPO on procedurally sampled initial positions, seed 42.
-4. Evaluate PPO on those 100 held-out seeds. Use the same environment and horizon for all policies.
-5. Report mean success rate, mean episode length, mean cumulative reward, collision count and invalid action count.
-6. Repeat training with at least 3 training seeds **if there is time**. A single seed is exploratory, not robust evidence.
-
-**Fairness note:** `steps` over all episodes includes failed runs that hit the 40-step horizon. When interpreting efficiency, additionally compute steps conditional on success. Heuristic BFS planning has privileged full-map knowledge, just like the centralized RL observation.
-
-## Suggested repo structure
-
-```text
-mamc_rl/env.py       # Gymnasium environment
-mamc_rl/policies.py  # random / BFS heuristic baselines
-train.py             # PPO training
- evaluate.py         # seeded benchmark + CSV export
- demo.py             # ASCII rollout
- tests/test_env.py   # basic environment integrity tests
- results/            # local metrics (CSV ignored by Git)
- models/             # local trained policies (ignored by Git)
-```
+- **V1:** 8×8 static grid; two agents and two targets.
+- **V2:** 10×10 grid; three initial targets, optional urgent target at step 12, changing obstacles, 60-step horizon.
+- **Control:** 25 joint actions (five moves per agent); fully observable state.
+- **Tools:** Python, Gymnasium, Stable-Baselines3, PyTorch, pytest. All open source.
 
 ## Results
 
-**Not measured yet.** Run the commands above and replace this section with an evidence-based table. Never claim that PPO beats the heuristic before verifying it.
+V2 **combined** scenario, 100 episodes per controller (seeds 1000–1099):
 
-| Controller | Success rate | Mean episode steps | Mean reward |
-|---|---:|---:|---:|
-| Random | TODO | TODO | TODO |
-| Greedy + BFS | TODO | TODO | TODO |
-| PPO | TODO | TODO | TODO |
+| Controller | Success | Weighted completion | Mean return | Invalid moves / episode |
+|---|---:|---:|---:|---:|
+| Random | 2% | 36.2% | 4.79 | 15.97 |
+| Adaptive heuristic | 100% | 100% | 40.62 | 0 |
+| PPO (100k training steps) | 5% | 43.1% | 3.63 | 32.76 |
+| Shielded PPO (same model) | 6% | 49.8% | 13.45 | 0 |
 
-Add a short section discussing failure cases, reward sensitivity and scalability: the joint-action count increases exponentially as `5^N`, so centralized joint-action PPO in this exact form will not scale comfortably to many agents.
+**Finding:** The feasibility shield eliminated invalid movements and collisions in these tests, but full mission success barely improved. This motivates investigating hierarchical control: learned mission assignment with classical navigation.
 
-## Reproducibility and ethics
+These are exploratory single-checkpoint results, not evidence that RL outperforms planning. The environment is simplified and does not model realistic aircraft dynamics.
 
-Open-source Python stack only, no external datasets or cloud accounts. MIT-licensed code. No weapons modeling or real operational flight-control claims.
+## Run locally
+
+Python 3.11 recommended.
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m pytest -q
+python evaluate_v2.py --episodes 100 --seed-start 1000
+python train_v2.py --timesteps 100000 --seed 42 --output models/ppo_v2_combined
+python evaluate_shield_v2.py --model models/ppo_v2_combined.zip --episodes 100 --seed-start 1000
+```
+
+Results CSVs are in [`results/`](results/); V1 scripts and benchmarks are retained for comparison. PPO checkpoints are generated locally and are not included in Git.
+
+## Next step
+
+Evaluate **hierarchical PPO for mission assignment + BFS for movement** against the adaptive heuristic on dynamic objectives and obstacles.
+
+MIT licensed; see [LICENSE](LICENSE).
