@@ -61,3 +61,18 @@ def test_bad_action_and_horizon():
     with pytest.raises(ValueError):
         env.step(25)
     env.close()
+
+
+def test_already_completed_assignment_does_not_end_option_early():
+    # Regression: previously completed goals must not trigger an immediate
+    # reassignment every primitive step.
+    env = HierarchicalMissionEnv(option_horizon=3, dynamic_obstacles=False)
+    env.reset(seed=7)
+    env.base.completed[0] = True
+    # Agent 0 chooses already-completed target 0, Agent 1 stays idle.
+    # With no obstacle refresh or target spawn within steps 1..3,
+    # the macro-action should run for the full horizon.
+    _, _, terminated, truncated, info = env.step(5)
+    assert not terminated and not truncated
+    assert info["low_level_steps"] == 3
+    env.close()

@@ -80,6 +80,14 @@ class HierarchicalMissionEnv(gym.Env):
         action = int(action)
         choices = (action // 5, action % 5)
         goals = tuple(None if a == 0 else a - 1 for a in choices)
+        # Only interrupt the option when an objective that was unfinished at
+        # the start of this decision becomes completed during its execution.
+        # A previously completed/inactive assignment is treated as idle, not
+        # as a fresh completion event.
+        initially_unfinished = tuple(
+            g is not None and bool(self.base.active[g]) and not bool(self.base.completed[g])
+            for g in goals
+        )
         reward_sum = 0.0
         elapsed = 0
         terminated = truncated = False
@@ -95,7 +103,10 @@ class HierarchicalMissionEnv(gym.Env):
                     last_info["obstacles_changed"]):
                 break
             # An assigned target has completed: reassign before further movement.
-            if any(g is not None and self.base.completed[g] for g in goals):
+            if any(
+                initially_unfinished[i] and bool(self.base.completed[g])
+                for i, g in enumerate(goals) if g is not None
+            ):
                 break
         info = dict(last_info)
         info.update(high_level_action=action, low_level_steps=elapsed)
