@@ -1,0 +1,38 @@
+{
+  "seed_start": 30000,
+  "seed_end": 30399,
+  "episodes": 400,
+  "controllers": [
+    "masked_random",
+    "resource_heuristic",
+    "masked_ppo",
+    "lookahead_d4"
+  ],
+  "option_horizon": 3,
+  "deadlines": [
+    12,
+    18,
+    24,
+    23
+  ],
+  "fuel_budgets": [
+    16,
+    18
+  ],
+  "lookahead_depth": 4,
+  "beam_width": 4,
+  "ppo_model_path": "models\\v4_horizon3_matched_seed42.zip",
+  "ppo_model_sha256": "981791df53ac3290fe752f16e255bf9decca8bf40945fa43b44811435d2f72e0",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "numpy": "2.4.6",
+  "torch": "2.11.0+cu128",
+  "bootstrap_seed": 20261120,
+  "bootstrap_resamples": 10000,
+  "code_sha256": {
+    "final_evaluation_v4.py": "5c2d7ae4569599a2ca66f58c4166656ebe0ad8b0118edef532b6073a766602da",
+    "mamc_rl/controllers_v4.py": "aabf1ff9507a0b567bf4c43410488054474f6115a09b5e8bef9b864c95fad132",
+    "mamc_rl/env_v4.py": "e8a9f5796e50d4c26ffdcff0c88a2354094636c354ea8820d47dc359f788062a",
+    "mamc_rl/lookahead_v4.py": "7caec01d0dc5e0bf2673f6afd7f59ae87a8522a1e3dbe1b8c7005cc795ee093c"
+  }
+}

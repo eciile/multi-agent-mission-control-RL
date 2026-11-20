@@ -1,0 +1,193 @@
+{
+  "n_missions": 400,
+  "bootstrap_resamples": 10000,
+  "bootstrap_seed": 20261120,
+  "controllers": {
+    "masked_random": {
+      "success": {
+        "mean": 0.0675,
+        "ci95": [
+          0.045,
+          0.0925
+        ]
+      },
+      "weighted_fraction": {
+        "mean": 0.553611111111111,
+        "ci95": [
+          0.5297152777777776,
+          0.5774999999999999
+        ]
+      },
+      "expired_targets": {
+        "mean": 1.915,
+        "ci95": [
+          1.82,
+          2.0125
+        ]
+      },
+      "primitive_steps": {
+        "mean": 22.1625,
+        "ci95": [
+          21.95,
+          22.365
+        ]
+      },
+      "mean_ms_per_decision": 0.018164694800135845,
+      "total_planning_seconds": 0.06786329977330752,
+      "mean_decisions_per_episode": 9.34,
+      "invalid_assignments": 0
+    },
+    "resource_heuristic": {
+      "success": {
+        "mean": 0.44,
+        "ci95": [
+          0.3925,
+          0.4875
+        ]
+      },
+      "weighted_fraction": {
+        "mean": 0.8608333333333335,
+        "ci95": [
+          0.8458333333333334,
+          0.8763888888888889
+        ]
+      },
+      "expired_targets": {
+        "mean": 0.6425,
+        "ci95": [
+          0.58,
+          0.705
+        ]
+      },
+      "primitive_steps": {
+        "mean": 19.5175,
+        "ci95": [
+          19.2225,
+          19.8075
+        ]
+      },
+      "mean_ms_per_decision": 0.41309077021990775,
+      "total_planning_seconds": 1.43218570035242,
+      "mean_decisions_per_episode": 8.6675,
+      "invalid_assignments": 0
+    },
+    "masked_ppo": {
+      "success": {
+        "mean": 0.33,
+        "ci95": [
+          0.2825,
+          0.375
+        ]
+      },
+      "weighted_fraction": {
+        "mean": 0.8513888888888889,
+        "ci95": [
+          0.8341666666666667,
+          0.8677777777777778
+        ]
+      },
+      "expired_targets": {
+        "mean": 0.8475,
+        "ci95": [
+          0.775,
+          0.92
+        ]
+      },
+      "primitive_steps": {
+        "mean": 19.195,
+        "ci95": [
+          18.9025,
+          19.485
+        ]
+      },
+      "mean_ms_per_decision": 0.4498388429605699,
+      "total_planning_seconds": 1.5240539999504108,
+      "mean_decisions_per_episode": 8.47,
+      "invalid_assignments": 0
+    },
+    "lookahead_d4": {
+      "success": {
+        "mean": 0.51,
+        "ci95": [
+          0.4625,
+          0.56
+        ]
+      },
+      "weighted_fraction": {
+        "mean": 0.8666666666666666,
+        "ci95": [
+          0.8508333333333334,
+          0.8819444444444445
+        ]
+      },
+      "expired_targets": {
+        "mean": 0.56,
+        "ci95": [
+          0.4975,
+          0.62
+        ]
+      },
+      "primitive_steps": {
+        "mean": 20.04,
+        "ci95": [
+          19.7625,
+          20.3075
+        ]
+      },
+      "mean_ms_per_decision": 35.96801538895189,
+      "total_planning_seconds": 130.42002380033955,
+      "mean_decisions_per_episode": 9.065,
+      "invalid_assignments": 0
+    }
+  },
+  "paired_differences_vs_heuristic": {
+    "masked_random": {
+      "success": {
+        "mean": -0.3725,
+        "ci95": [
+          -0.4225,
+          -0.3225
+        ]
+      },
+      "weighted_fraction": {
+        "mean": -0.30722222222222223,
+        "ci95": [
+          -0.33111111111111113,
+          -0.2838888888888889
+        ]
+      }
+    },
+    "masked_ppo": {
+      "success": {
+        "mean": -0.11,
+        "ci95": [
+          -0.1475,
+          -0.0725
+        ]
+      },
+      "weighted_fraction": {
+        "mean": -0.00944444444444445,
+        "ci95": [
+          -0.021111111111111115,
+          0.0019444444444444394
+        ]
+      }
+    },
+    "lookahead_d4": {
+      "success": {
+        "mean": 0.07,
+        "ci95": [
+          0.03,
+          0.11
+        ]
+      },
+      "weighted_fraction": {
+        "mean": 0.005833333333333337,
+        "ci95": [
+          -0.006118055555555549,
+          0.018062499999999905
+        ]
+      }
+    }
+  }
+}
